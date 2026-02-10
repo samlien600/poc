@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>國泰金控 - 虛擬貨幣交易共用平台 MVP 計畫解析</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+        }
+
+        .cathay-green { color: #009945; }
+        .bg-cathay-green { background-color: #009945; }
+        .border-cathay-green { border-color: #009945; }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Animations */
+        @keyframes pulse-border {
+            0% { border-color: #cbd5e1; box-shadow: 0 0 0 0 rgba(0, 153, 69, 0.4); }
+            70% { border-color: #009945; box-shadow: 0 0 0 10px rgba(0, 153, 69, 0); }
+            100% { border-color: #cbd5e1; box-shadow: 0 0 0 0 rgba(0, 153, 69, 0); }
+        }
+
+        .flow-active {
+            animation: pulse-border 2s infinite;
+            background-color: #ecfdf5;
+            border-color: #009945 !important;
+            transform: scale(1.02);
+            transition: all 0.3s ease;
+        }
+
+        /* Flow Lines Animation */
+        .flow-line {
+            position: absolute;
+            background: #cbd5e1;
+            z-index: 0;
+            overflow: hidden;
+        }
+        
+        .flow-line::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, #009945, transparent);
+            transform: translateX(-100%);
+            animation: flow-animation 2s infinite;
+        }
+
+        @keyframes flow-animation {
+            100% { transform: translateX(100%); }
+        }
+
+        .arch-box {
+            transition: all 0.3s ease;
+            cursor: pointer;
+            z-index: 10;
+            position: relative;
+        }
+        .arch-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            border-color: #009945;
+        }
+        
+        .selected-box {
+            border: 2px solid #009945;
+            background-color: #f0fdf4;
+            transform: scale(1.01);
+        }
+
+        .module-badge {
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-right: 4px;
+            margin-bottom: 4px;
+            display: inline-block;
+            background-color: rgba(255,255,255,0.8);
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Navigation -->
+    <nav class="bg-white shadow-md fixed w-full z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <i class="fa-solid fa-tree text-2xl text-[#009945] mr-2"></i>
+                    <span class="font-bold text-xl tracking-wide">Cathay Financial <span class="text-gray-500 text-sm ml-1">Crypto MVP Project</span></span>
+                </div>
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#intro" class="text-gray-600 hover:text-[#009945] transition">計畫背景</a>
+                    <a href="#architecture" class="text-gray-600 hover:text-[#009945] transition">系統架構</a>
+                    <a href="#demo" class="text-gray-600 hover:text-[#009945] transition">流程演示</a>
+                    <a href="#tech" class="text-gray-600 hover:text-[#009945] transition">技術亮點</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="intro" class="pt-24 pb-12 bg-gradient-to-br from-gray-50 to-green-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-6">虛擬貨幣交易共用平台 <span class="text-[#009945]">MVP</span></h1>
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto mb-10">
+                驗證是否能在現行證券體系外，建立一套獨立且能承載 7x24 小時、秒級波動高頻交易需求的「類複委託」中介平台。
+            </p>
+            
+            <!-- Comparison Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-gray-400">
+                    <h3 class="text-xl font-bold text-gray-700 mb-4"><i class="fa-solid fa-building-columns mr-2"></i>現行證券環境</h3>
+                    <ul class="text-left space-y-3 text-gray-600">
+                        <li><i class="fa-regular fa-clock w-6 text-center"></i> 固定交易時段</li>
+                        <li><i class="fa-solid fa-chart-line w-6 text-center"></i> 價格波動相對穩定</li>
+                        <li><i class="fa-solid fa-server w-6 text-center"></i> 難以負荷加密貨幣高頻吞吐</li>
+                    </ul>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-[#009945]">
+                    <h3 class="text-xl font-bold text-[#009945] mb-4"><i class="fa-brands fa-bitcoin mr-2"></i>加密貨幣現實</h3>
+                    <ul class="text-left space-y-3 text-gray-600">
+                        <li><i class="fa-solid fa-infinity w-6 text-center text-[#009945]"></i> 7x24 全年無休 (Always On)</li>
+                        <li><i class="fa-solid fa-bolt w-6 text-center text-[#009945]"></i> 秒級劇烈跳動</li>
+                        <li><i class="fa-solid fa-microchip w-6 text-center text-[#009945]"></i> 高頻、即時撮合需求</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Architecture Section (Optimized for Hierarchy & Modules) -->
+    <section id="architecture" class="py-16 bg-white relative overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-900">核心架構與模組層級</h2>
+                <p class="text-gray-500 mt-2">基於 Microservices 架構設計，實現高頻交易與帳務安全的職責分離</p>
+            </div>
+
+            <!-- Architecture Container -->
+            <div class="relative grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+                
+                <!-- Left Column: Sources -->
+                <div class="lg:col-span-2 flex flex-col gap-4 z-10">
+                    <!-- App -->
+                    <div class="arch-box bg-white border-2 border-gray-200 rounded-lg p-4 text-center hover:border-blue-400" onclick="showDetail('app')">
+                        <i class="fa-solid fa-mobile-screen text-3xl text-gray-600 mb-2"></i>
+                        <h4 class="font-bold text-gray-800">Mock APP</h4>
+                        <p class="text-xs text-gray-500">用戶端模擬</p>
+                    </div>
+                    <!-- Connection Line Vertical -->
+                    <div class="h-8 w-0.5 bg-gray-300 mx-auto"></div>
+                    <!-- Legacy -->
+                    <div class="arch-box bg-gray-50 border-2 border-gray-300 rounded-lg p-4 text-center hover:border-gray-500" onclick="showDetail('legacy')">
+                        <i class="fa-solid fa-landmark text-3xl text-gray-600 mb-2"></i>
+                        <h4 class="font-bold text-gray-800">證券 Mock 系統</h4>
+                        <p class="text-xs text-gray-500">核心帳務</p>
+                    </div>
+                </div>
+
+                <!-- Connectors Left to Middle -->
+                <div class="hidden lg:block lg:col-span-1 relative h-full">
+                    <!-- Top Arrow -->
+                    <div class="absolute top-[20%] left-0 w-full h-0.5 bg-gray-300"></div>
+                    <div class="absolute top-[18.5%] right-0 text-gray-300"><i class="fa-solid fa-caret-right"></i></div>
+                    
+                    <!-- Bottom Arrow -->
+                    <div class="absolute bottom-[20%] left-0 w-full h-0.5 bg-gray-300"></div>
+                    <div class="absolute bottom-[18.5%] left-0 text-gray-300 transform rotate-180"><i class="fa-solid fa-caret-right"></i></div>
+                </div>
+
+                <!-- Middle Column: MVP Platform (The Core) -->
+                <div class="lg:col-span-6 bg-green-50/50 border-2 border-dashed border-[#009945] rounded-xl p-4 relative z-10">
+                    <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-[#009945] text-white px-4 py-0.5 rounded-full text-sm font-bold shadow-md">
+                        MVP Platform Core
+                    </div>
+
+                    <!-- 2B Management Hub (Top Layer) -->
+                    <div class="arch-box bg-white border-2 border-blue-200 rounded-lg p-4 mb-4 shadow-sm hover:border-blue-500 transition-all" onclick="showDetail('2b')">
+                        <div class="flex justify-between items-center mb-3 border-b border-gray-100 pb-2">
+                            <h3 class="font-bold text-blue-900"><i class="fa-solid fa-brain mr-2 text-blue-500"></i>2B 管理中樞 (Management Hub)</h3>
+                            <span class="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded">Control Plane</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div class="module-badge text-gray-600"><i class="fa-solid fa-wallet text-blue-400 mr-1"></i>顧客資產模組</div>
+                            <div class="module-badge text-gray-600"><i class="fa-solid fa-user-shield text-blue-400 mr-1"></i>認證授權模組</div>
+                            <div class="module-badge text-gray-600"><i class="fa-solid fa-file-invoice text-blue-400 mr-1"></i>帳務結算模組</div>
+                            <div class="module-badge text-gray-600"><i class="fa-solid fa-route text-blue-400 mr-1"></i>策略路由模組</div>
+                            <div class="module-badge text-gray-600 col-span-2 text-center"><i class="fa-solid fa-calculator text-blue-400 mr-1"></i>手續費設定模組 (外加/內扣)</div>
+                        </div>
+                    </div>
+
+                    <!-- Internal Connection -->
+                    <div class="flex justify-center -my-2 relative z-0">
+                        <i class="fa-solid fa-arrow-down text-gray-300"></i>
+                    </div>
+
+                    <!-- 2A High Frequency Engine (Bottom Layer) -->
+                    <div class="arch-box bg-gray-900 text-white border-2 border-gray-700 rounded-lg p-4 shadow-md hover:border-[#009945] transition-all" onclick="showDetail('2a')">
+                        <div class="flex justify-between items-center mb-3 border-b border-gray-700 pb-2">
+                            <h3 class="font-bold text-green-400"><i class="fa-solid fa-bolt mr-2"></i>2A 高頻交易核心 (HF Engine)</h3>
+                            <span class="text-xs bg-green-900 text-green-300 px-2 py-0.5 rounded">Data Plane</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div class="module-badge bg-gray-800 text-gray-300 border-gray-600"><i class="fa-solid fa-network-wired text-green-500 mr-1"></i>Non-blocking I/O</div>
+                            <div class="module-badge bg-gray-800 text-gray-300 border-gray-600"><i class="fa-solid fa-wind text-green-500 mr-1"></i>WebSocket Stream</div>
+                            <div class="module-badge bg-gray-800 text-gray-300 border-gray-600"><i class="fa-solid fa-list-check text-green-500 mr-1"></i>Order Processing</div>
+                            <div class="module-badge bg-gray-800 text-gray-300 border-gray-600"><i class="fa-solid fa-bell text-green-500 mr-1"></i>Execution Report</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Connectors Middle to Right -->
+                <div class="hidden lg:block lg:col-span-1 relative h-full">
+                    <!-- Connection Line -->
+                    <div class="absolute top-1/2 left-0 w-full h-1 flow-line rounded"></div>
+                    <div class="absolute top-[45%] right-0 text-[#009945]"><i class="fa-solid fa-caret-right text-xl"></i></div>
+                </div>
+
+                <!-- Right Column: Exchange -->
+                <div class="lg:col-span-2 flex flex-col justify-center z-10">
+                    <div class="arch-box bg-gradient-to-b from-gray-800 to-gray-900 text-white rounded-lg p-6 text-center shadow-xl hover:shadow-2xl border border-gray-700" onclick="showDetail('exchange')">
+                        <div class="mb-3 relative">
+                            <i class="fa-solid fa-globe text-5xl text-blue-400"></i>
+                            <span class="absolute -top-1 -right-1 flex h-3 w-3">
+                              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                              <span class="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
+                            </span>
+                        </div>
+                        <h4 class="font-bold text-lg">外部交易所</h4>
+                        <p class="text-xs text-gray-400 mt-1">Liquidity & Matching</p>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Detail Panel -->
+            <div id="detail-panel" class="mt-12 bg-white border-l-4 border-[#009945] p-6 shadow-lg min-h-[120px] transition-all transform opacity-0 translate-y-4">
+                <div class="flex items-start">
+                    <div class="flex-shrink-0 mt-1 mr-4 text-[#009945]">
+                        <i class="fa-solid fa-circle-info text-2xl"></i>
+                    </div>
+                    <div>
+                        <h3 id="detail-title" class="text-xl font-bold text-gray-900 mb-2">系統模組解析</h3>
+                        <p id="detail-desc" class="text-gray-600">請點擊上方的架構區塊（如 APP, 2A, 2B 等）以查看詳細技術職責。</p>
+                        <div id="detail-tags" class="mt-3 flex flex-wrap gap-2"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Simulation Section -->
+    <section id="demo" class="py-16 bg-gray-50">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-10">
+                <h2 class="text-3xl font-bold text-gray-900">交易流程模擬：買進 (Buy Flow)</h2>
+                <p class="text-gray-500 mt-2">展示「類複委託」模式下的資產圈存與高頻下單邏輯</p>
+            </div>
+
+            <!-- Control -->
+            <div class="flex justify-center mb-8">
+                <button onclick="startSimulation()" id="start-btn" class="bg-[#009945] hover:bg-green-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition transform hover:scale-105 flex items-center">
+                    <i class="fa-solid fa-play mr-2"></i> 開始模擬下單
+                </button>
+            </div>
+
+            <!-- Flow Visualizer -->
+            <div class="relative">
+                <!-- Progress Bar -->
+                <div class="h-2 bg-gray-200 rounded-full mb-8 overflow-hidden">
+                    <div id="progress-bar" class="h-full bg-[#009945] w-0 transition-all duration-500"></div>
+                </div>
+
+                <!-- Steps Grid -->
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
+                    <!-- Step 1 -->
+                    <div id="step-1" class="flow-step p-4 bg-white rounded-lg border border-gray-200 opacity-50 transition">
+                        <div class="text-2xl mb-2">📱</div>
+                        <div class="font-bold text-sm">1. APP 發起</div>
+                        <div class="text-xs text-gray-500">用戶下單請求</div>
+                    </div>
+                    
+                    <!-- Step 2 -->
+                    <div id="step-2" class="flow-step p-4 bg-white rounded-lg border border-gray-200 opacity-50 transition">
+                        <div class="text-2xl mb-2">💰</div>
+                        <div class="font-bold text-sm">2. 2B 驗證</div>
+                        <div class="text-xs text-gray-500">購買力檢查 & 算費</div>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div id="step-3" class="flow-step p-4 bg-white rounded-lg border border-gray-200 opacity-50 transition">
+                        <div class="text-2xl mb-2">🔒</div>
+                        <div class="font-bold text-sm">3. 證券圈存</div>
+                        <div class="text-xs text-gray-500">Pre-funding Check</div>
+                    </div>
+
+                    <!-- Step 4 -->
+                    <div id="step-4" class="flow-step p-4 bg-white rounded-lg border border-gray-200 opacity-50 transition">
+                        <div class="text-2xl mb-2">⚡</div>
+                        <div class="font-bold text-sm">4. 2A 極速下單</div>
+                        <div class="text-xs text-gray-500">路由至交易所</div>
+                    </div>
+
+                    <!-- Step 5 -->
+                    <div id="step-5" class="flow-step p-4 bg-white rounded-lg border border-gray-200 opacity-50 transition">
+                        <div class="text-2xl mb-2">✅</div>
+                        <div class="font-bold text-sm">5. 成交回報</div>
+                        <div class="text-xs text-gray-500">解除圈存 & 扣款</div>
+                    </div>
+                </div>
+
+                <!-- Log Console -->
+                <div class="mt-8 bg-gray-900 rounded-lg p-4 font-mono text-sm h-48 overflow-y-auto shadow-inner border border-gray-700">
+                    <div class="flex items-center text-gray-400 mb-2 border-b border-gray-700 pb-2">
+                        <i class="fa-solid fa-terminal mr-2"></i> System Logs
+                    </div>
+                    <div id="console-logs" class="space-y-1">
+                        <p class="text-green-400">> System Ready.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tech Stack & Summary -->
+    <section id="tech" class="py-16 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl font-bold text-gray-900 text-center mb-12">技術堆疊與驗證策略</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Tech Stack -->
+                <div class="bg-gray-50 p-6 rounded-xl border border-gray-100">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4 border-b-2 border-[#009945] inline-block pb-1">核心技術</h3>
+                    <div class="flex flex-wrap gap-2 mt-2">
+                        <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-semibold">Java / Spring Boot</span>
+                        <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-semibold">Microservices</span>
+                        <span class="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-semibold">GCP (GKE, Pub/Sub)</span>
+                        <span class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-semibold">Kafka</span>
+                        <span class="px-3 py-1 bg-gray-200 text-gray-800 rounded-full text-sm font-semibold">WebSocket</span>
+                        <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-semibold">PostgreSQL</span>
+                    </div>
+                </div>
+
+                <!-- Development Methodology -->
+                <div class="bg-gray-50 p-6 rounded-xl border border-gray-100">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4 border-b-2 border-[#009945] inline-block pb-1">開發方法</h3>
+                    <ul class="space-y-3">
+                        <li class="flex items-start"><i class="fa-solid fa-robot mt-1 text-blue-500 mr-2"></i> <span><strong>AI 輔助開發：</strong>加速程式碼生成與單元測試撰寫。</span></li>
+                        <li class="flex items-start"><i class="fa-solid fa-code mt-1 text-green-500 mr-2"></i> <span><strong>Spec-driven + TDD：</strong>先定義 API 行為，再進行實作。</span></li>
+                    </ul>
+                </div>
+
+                <!-- QA Strategy -->
+                <div class="bg-gray-50 p-6 rounded-xl border border-gray-100">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4 border-b-2 border-[#009945] inline-block pb-1">品質保證</h3>
+                    <ul class="space-y-3">
+                        <li class="flex items-start"><i class="fa-solid fa-gauge-high mt-1 text-red-500 mr-2"></i> <span><strong>高併發測試：</strong>驗證 Latency 與系統承載量。</span></li>
+                        <li class="flex items-start"><i class="fa-solid fa-bug mt-1 text-orange-500 mr-2"></i> <span><strong>Chaos Engineering：</strong>模擬系統崩潰與斷線重連。</span></li>
+                        <li class="flex items-start"><i class="fa-solid fa-file-invoice-dollar mt-1 text-gray-500 mr-2"></i> <span><strong>帳務邊界測試：</strong>Ledger Edge Cases。</span></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Timeline -->
+            <div class="mt-12 bg-[#009945] text-white rounded-xl p-8">
+                <h3 class="text-xl font-bold mb-6 text-center">4 個月 MVP 時程規劃</h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
+                    <div class="relative">
+                        <div class="font-bold text-lg mb-2">Month 1</div>
+                        <div class="text-sm bg-white/20 p-2 rounded">需求凍結 & Mock 架設</div>
+                    </div>
+                    <div class="relative">
+                        <div class="font-bold text-lg mb-2">Month 2</div>
+                        <div class="text-sm bg-white/20 p-2 rounded">核心開發 (2A/2B)</div>
+                    </div>
+                    <div class="relative">
+                        <div class="font-bold text-lg mb-2">Month 3</div>
+                        <div class="text-sm bg-white/20 p-2 rounded">TDD & 整合測試</div>
+                    </div>
+                    <div class="relative">
+                        <div class="font-bold text-lg mb-2">Month 4</div>
+                        <div class="text-sm bg-white/20 p-2 rounded">壓力測試 & 驗收 Demo</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-gray-400 py-8">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="mb-2">Cathay Financial Holdings - Virtual Currency Trading Common Platform MVP</p>
+            <p class="text-sm">Based on the provided presentation by Water (2026.02.10)</p>
+        </div>
+    </footer>
+
+    <!-- Interactive Scripts -->
+    <script>
+        // Data for Architecture Details
+        const archData = {
+            'app': {
+                title: 'Mock APP',
+                desc: '模擬用戶端的高頻操作行為。負責發起下單、改價與查詢請求。在本次 MVP 中作為測試驅動源，不涉及真實 UI 開發。',
+                tags: ['User Interface', 'REST API', 'Test Client']
+            },
+            'legacy': {
+                title: '證券既有系統 (Core System - Mock)',
+                desc: '模擬核心帳務系統的上下行電文。在「類複委託」模式中，負責台幣資金的圈存 (Pre-funding Check) 與最終的日終交割。',
+                tags: ['Ledger', 'Settlement', 'Legacy Interface']
+            },
+            '2b': {
+                title: 'MVP 核心 2B - 管理中樞 (Management Hub)',
+                desc: '負責交易以外的複雜邏輯。包含：顧客資產模組(維護帳本/圈存狀態)、認證授權、手續費計算(買單外加/賣單內扣)以及訂單的 Smart Routing。',
+                tags: ['Asset Module', 'Compliance', 'Fee Engine', 'Routing Logic']
+            },
+            '2a': {
+                title: 'MVP 核心 2A - 高頻交易引擎 (High-Frequency Engine)',
+                desc: '系統的心臟，專注於速度。採用非同步處理 (Non-blocking I/O) 與事件驅動架構。負責處理 WebSocket 報價串流與極速下單，作為證券端與交易所間的緩衝。',
+                tags: ['High Concurrency', 'Low Latency', 'Event-driven', 'WebSocket']
+            },
+            'exchange': {
+                title: '外部交易所 (External Exchange)',
+                desc: '提供市場流動性與撮合服務。MVP 平台透過 API 與其對接，獲取即時價格 (Price Stream) 並執行訂單 (New/Cancel/Replace Order)。',
+                tags: ['Liquidity Provider', 'Matching Engine', 'Market Data']
+            }
+        };
+
+        // Architecture Detail Interaction
+        function showDetail(key) {
+            const data = archData[key];
+            const panel = document.getElementById('detail-panel');
+            const title = document.getElementById('detail-title');
+            const desc = document.getElementById('detail-desc');
+            const tags = document.getElementById('detail-tags');
+
+            // Reset Selection Styles
+            document.querySelectorAll('.arch-box').forEach(box => box.classList.remove('selected-box'));
+            // Selection logic handles via simple CSS classes in this demo or manually:
+            // (Simpler to just focus on content update for this MVP)
+            
+            // Animation for panel
+            panel.classList.remove('opacity-0', 'translate-y-4');
+            panel.classList.add('opacity-0', 'translate-y-4'); // Reset animation
+            
+            setTimeout(() => {
+                title.textContent = data.title;
+                desc.textContent = data.desc;
+                
+                // Generate Tags
+                tags.innerHTML = data.tags.map(tag => 
+                    `<span class="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs border border-gray-300">${tag}</span>`
+                ).join('');
+                
+                panel.classList.remove('opacity-0', 'translate-y-4');
+            }, 100);
+        }
+
+        // Show default detail on load (optional)
+        // setTimeout(() => showDetail('2b'), 1000);
+
+        // Simulation Logic
+        function logMessage(msg, type = 'info') {
+            const consoleLogs = document.getElementById('console-logs');
+            const p = document.createElement('p');
+            p.className = type === 'success' ? 'text-green-400' : 'text-gray-300';
+            p.innerText = `> ${msg}`;
+            consoleLogs.appendChild(p);
+            consoleLogs.scrollTop = consoleLogs.scrollHeight;
+        }
+
+        function startSimulation() {
+            const btn = document.getElementById('start-btn');
+            const progressBar = document.getElementById('progress-bar');
+            
+            if(btn.disabled) return;
+            btn.disabled = true;
+            btn.classList.add('opacity-50', 'cursor-not-allowed');
+            
+            // Reset
+            progressBar.style.width = '0%';
+            document.querySelectorAll('.flow-step').forEach(el => {
+                el.classList.remove('flow-active', 'opacity-100');
+                el.classList.add('opacity-50');
+            });
+            document.getElementById('console-logs').innerHTML = '<p class="text-green-400">> Simulation Started...</p>';
+
+            const steps = [
+                { id: 'step-1', msg: 'APP 發送買單請求 (Buy BTC)...', delay: 500 },
+                { id: 'step-2', msg: '2B 管理中樞：檢查用戶台幣餘額、計算手續費...', delay: 1500 },
+                { id: 'step-3', msg: '證券 Mock：執行圈存 (Pre-funding)... 資金鎖定成功。', delay: 2500 },
+                { id: 'step-4', msg: '2A 引擎：高速路由至外部交易所... 掛單成功。', delay: 3500 },
+                { id: 'step-5', msg: '交易所回報成交 (Filled)。執行解圈存與扣款。', delay: 4500 }
+            ];
+
+            let totalTime = 5500;
+
+            steps.forEach((step, index) => {
+                setTimeout(() => {
+                    // Activate Step
+                    const el = document.getElementById(step.id);
+                    el.classList.remove('opacity-50');
+                    el.classList.add('flow-active', 'opacity-100');
+                    
+                    // Log
+                    logMessage(step.msg, index === steps.length - 1 ? 'success' : 'info');
+
+                    // Progress Bar
+                    const progress = ((index + 1) / steps.length) * 100;
+                    progressBar.style.width = `${progress}%`;
+
+                    // Deactivate previous step
+                    if(index > 0) {
+                        document.getElementById(steps[index-1].id).classList.remove('flow-active');
+                    }
+
+                }, step.delay);
+            });
+
+            setTimeout(() => {
+                document.getElementById('step-5').classList.remove('flow-active');
+                logMessage('Transaction Complete. Ready for next order.', 'success');
+                btn.disabled = false;
+                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }, totalTime);
+        }
+    </script>
+</body>
+</html>
